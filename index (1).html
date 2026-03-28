@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatWave</title>
+  <style>
+    :root {
+      --bg: #b8923e;
+      --bg-strong: #f7f2e9;
+      --panel: rgba(254, 251, 245, 0.82);
+      --panel-strong: #fffaf2;
+      --ink: #1d2a24;
+      --muted: #5f6e65;
+      --line: rgba(29, 42, 36, 0.12);
+      --brand: #0d7c66;
+      --brand-deep: #0b5b4b;
+      --accent: #ef7d57;
+      --shadow: 0 24px 60px rgba(52, 51, 46, 0.16);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(239, 125, 87, 0.28), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(13, 124, 102, 0.24), transparent 30%),
+        linear-gradient(135deg, #ece5d7, var(--bg));
+      color: var(--ink);
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      border-radius: 999px;
+      filter: blur(16px);
+      opacity: 0.8;
+    }
+
+    body::before {
+      width: 260px;
+      height: 260px;
+      background: rgba(239, 125, 87, 0.16);
+      top: 28px;
+      right: 8%;
+    }
+
+    body::after {
+      width: 320px;
+      height: 320px;
+      background: rgba(13, 124, 102, 0.14);
+      bottom: 16px;
+      left: 6%;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 20px;
+      align-items: stretch;
+      animation: rise 700ms ease;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(13, 124, 102, 0.1);
+      color: var(--brand-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sidebar h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    .sidebar p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .features {
+      display: grid;
+      gap: 12px;
+    }
+
+    .feature {
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid var(--line);
+      padding: 16px;
+    }
+
+    .feature strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip,
+    button {
+      border: 0;
+      cursor: pointer;
+      transition:
+        transform 160ms ease,
+        box-shadow 160ms ease,
+        background 160ms ease;
+    }
+
+    .chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(29, 42, 36, 0.08);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .chip:hover,
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .chat-shell {
+      border-radius: 34px;
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 84vh;
+      overflow: hidden;
+    }
+
+    .chat-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 8px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .identity {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #f0b95f);
+      color: white;
+      font-size: 1.15rem;
+      font-weight: 800;
+      box-shadow: 0 14px 28px rgba(239, 125, 87, 0.28);
+    }
+
+    .identity strong,
+    .identity span {
+      display: block;
+    }
+
+    .identity span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .ghost-button {
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(29, 42, 36, 0.06);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .messages {
+      overflow-y: auto;
+      padding: 24px 10px 24px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: min(80%, 660px);
+      animation: pop 220ms ease;
+    }
+
+    .message.user {
+      align-self: flex-end;
+    }
+
+    .message.assistant,
+    .message.system {
+      align-self: flex-start;
+    }
+
+    .bubble {
+      padding: 16px 18px;
+      border-radius: 22px;
+      box-shadow: 0 10px 24px rgba(42, 41, 38, 0.08);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message.user .bubble {
+      background: linear-gradient(135deg, var(--brand), #16a085);
+      color: white;
+      border-bottom-right-radius: 8px;
+    }
+
+    .message.assistant .bubble,
+    .message.system .bubble {
+      background: var(--panel-strong);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-bottom-left-radius: 8px;
+    }
+
+    .meta {
+      margin-top: 6px;
+      padding: 0 8px;
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
+    .typing {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .typing span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(13, 124, 102, 0.55);
+      animation: blink 0.9s infinite alternate;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    .composer {
+      border-top: 1px solid var(--line);
+      padding: 18px 8px 8px;
+    }
+
+    .composer form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .input-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--line);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 64px;
+      max-height: 180px;
+      resize: vertical;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+
+    .helper-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .send-button {
+      min-width: 132px;
+      padding: 18px 22px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--accent), #f39e6a);
+      color: white;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      box-shadow: 0 16px 34px rgba(239, 125, 87, 0.26);
+    }
+
+    .send-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes blink {
+      from {
+        transform: translateY(0);
+        opacity: 0.45;
+      }
+      to {
+        transform: translateY(-3px);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 940px) {
+      body {
+        padding: 14px;
+      }
+
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-shell {
+        min-height: 78vh;
+      }
+
+      .message {
+        max-width: 92%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .sidebar,
+      .chat-shell {
+        border-radius: 24px;
+      }
+
+      .chat-topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .composer form {
+        grid-template-columns: 1fr;
+      }
+
+      .send-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar panel">
+      <div>
+        <div class="eyebrow">Chat en vivo</div>
+        <h1>ChatWave</h1>
+      </div>
+
+      <p>
+        Tu web ahora es una app de chat estática: funciona en GitHub Pages,
+        guarda el historial en el navegador y responde al instante sin servidor.
+      </p>
+
+      <section class="features">
+        <article class="feature">
+          <strong>Lista para publicar</strong>
+          Solo necesitas subir este mismo <code>index.html</code> a tu repo.
+        </article>
+        <article class="feature">
+          <strong>Historial persistente</strong>
+          Los mensajes se guardan con <code>localStorage</code>.
+        </article>
+        <article class="feature">
+          <strong>Fácil de ampliar</strong>
+          Luego podemos conectarla a OpenAI o hacerla multiusuario.
+        </article>
+      </section>
+
+      <div>
+        <p style="margin-bottom: 12px;">Prueba rápida:</p>
+        <div class="chip-row">
+          <button class="chip" data-prompt="Hola, ¿quién eres?">Hola</button>
+          <button class="chip" data-prompt="Ayúdame a organizar mi día">Organizar mi día</button>
+          <button class="chip" data-prompt="Dame ideas para estudiar mejor">Ideas para estudiar</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="chat-shell panel">
+      <header class="chat-topbar">
+        <div class="identity">
+          <div class="avatar">CW</div>
+          <div>
+            <strong>Asistente ChatWave</strong>
+            <span>Modo local • ideal para GitHub Pages</span>
+          </div>
+        </div>
+        <button class="ghost-button" id="clearChat" type="button">Borrar conversación</button>
+      </header>
+
+      <div class="messages" id="messages" aria-live="polite"></div>
+
+      <footer class="composer">
+        <form id="chatForm">
+          <div class="input-wrap">
+            <label for="prompt" class="sr-only" style="position:absolute;left:-9999px;">Escribe tu mensaje</label>
+            <textarea
+              id="prompt"
+              name="prompt"
+              placeholder="Escribe un mensaje y pulsa Enter..."
+              maxlength="600"
+            ></textarea>
+            <div class="helper-row">
+              <span id="statusText">Enter para enviar • Shift + Enter para salto de línea</span>
+              <span id="charCount">0/600</span>
+            </div>
+          </div>
+          <button class="send-button" id="sendButton" type="submit">Enviar</button>
+        </form>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    const storageKey = "chatwave-history";
+    const messagesNode = document.getElementById("messages");
+    const promptNode = document.getElementById("prompt");
+    const charCountNode = document.getElementById("charCount");
+    const sendButtonNode = document.getElementById("sendButton");
+    const clearChatNode = document.getElementById("clearChat");
+    const statusTextNode = document.getElementById("statusText");
+    const chipNodes = document.querySelectorAll("[data-prompt]");
+    const initialMessages = [
+      {
+        role: "assistant",
+        text: "Hola. Soy tu chat local.\n\nPuedo conversar contigo, darte ideas y ayudarte a organizar tareas. Si quieres, después podemos conectar esta web a una IA real.",
+        timestamp: new Date().toISOString()
+      }
+    ];
+
+    let messages = loadMessages();
+    let typingTimer = null;
+
+    renderMessages();
+    syncComposerState();
+
+    document.getElementById("chatForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitPrompt(promptNode.value);
+    });
+
+    promptNode.addEventListener("input", syncComposerState);
+    promptNode.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        submitPrompt(promptNode.value);
+      }
+    });
+
+    clearChatNode.addEventListener("click", () => {
+      messages = [...initialMessages];
+      saveMessages();
+      renderMessages();
+      statusTextNode.textContent = "Conversación reiniciada";
+    });
+
+    chipNodes.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        promptNode.value = chip.dataset.prompt;
+        syncComposerState();
+        promptNode.focus();
+      });
+    });
+
+    function loadMessages() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey));
+        if (Array.isArray(saved) && saved.length > 0) {
+          return saved;
+        }
+      } catch (error) {
+        console.warn("No se pudo recuperar el historial:", error);
+      }
+
+      return [...initialMessages];
+    }
+
+    function saveMessages() {
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    }
+
+    function syncComposerState() {
+      const length = promptNode.value.trim().length;
+      charCountNode.textContent = `${promptNode.value.length}/600`;
+      sendButtonNode.disabled = length === 0;
+    }
+
+    function submitPrompt(rawText) {
+      const text = rawText.trim();
+
+      if (!text) {
+        return;
+      }
+
+      appendMessage("user", text);
+      promptNode.value = "";
+      syncComposerState();
+      statusTextNode.textContent = "ChatWave está escribiendo...";
+      showTyping();
+
+      const responseDelay = Math.min(1400, 500 + text.length * 12);
+      typingTimer = window.setTimeout(() => {
+        removeTyping();
+        appendMessage("assistant", buildReply(text));
+        statusTextNode.textContent = "Respuesta enviada";
+      }, responseDelay);
+    }
+
+    function appendMessage(role, text) {
+      messages.push({
+        role,
+        text,
+        timestamp: new Date().toISOString()
+      });
+
+      saveMessages();
+      renderMessages();
+    }
+
+    function renderMessages() {
+      messagesNode.innerHTML = "";
+
+      messages.forEach((message) => {
+        messagesNode.appendChild(createMessageElement(message));
+      });
+
+      scrollMessagesToEnd();
+    }
+
+    function createMessageElement(message) {
+      const wrapper = document.createElement("article");
+      wrapper.className = `message ${message.role}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = message.text;
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = formatTimestamp(message.timestamp, message.role);
+
+      wrapper.appendChild(bubble);
+      wrapper.appendChild(meta);
+      return wrapper;
+    }
+
+    function showTyping() {
+      removeTyping();
+
+      const wrapper = document.createElement("article");
+      wrapper.className = "message assistant";
+      wrapper.id = "typing-indicator";
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerHTML = `
+        <div class="typing" aria-label="Escribiendo">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      `;
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = "Asistente escribiendo...";
+
+      wrapper.appendChild(bubble);
+      wrapper.appendChild(meta);
+      messagesNode.appendChild(wrapper);
+      scrollMessagesToEnd();
+    }
+
+    function removeTyping() {
+      const typingNode = document.getElementById("typing-indicator");
+      if (typingNode) {
+        typingNode.remove();
+      }
+
+      if (typingTimer) {
+        window.clearTimeout(typingTimer);
+        typingTimer = null;
+      }
+    }
+
+    function scrollMessagesToEnd() {
+      messagesNode.scrollTop = messagesNode.scrollHeight;
+    }
+
+    function formatTimestamp(isoString, role) {
+      const label = role === "user" ? "Tú" : "ChatWave";
+      const time = new Date(isoString).toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      return `${label} • ${time}`;
+    }
+
+    function buildReply(text) {
+      const input = text.toLowerCase();
+
+      if (includesAny(input, ["hola", "buenas", "hey"])) {
+        return "Hola. Me alegra verte por aquí. Puedo ayudarte a pensar ideas, practicar conversación o responder de forma rápida dentro de esta demo.";
+      }
+
+      if (includesAny(input, ["quién eres", "quien eres", "qué eres", "que eres"])) {
+        return "Soy una interfaz de chat creada en tu propia web. Ahora mismo funciono en modo local con respuestas simuladas para que puedas publicarme gratis en GitHub Pages.";
+      }
+
+      if (includesAny(input, ["estudi", "examen", "aprender"])) {
+        return "Plan rápido para estudiar mejor:\n1. Divide el tema en bloques pequeños.\n2. Haz sesiones de 25 minutos.\n3. Resume con tus palabras.\n4. Practica recordando sin mirar.\n5. Repite lo difícil al día siguiente.";
+      }
+
+      if (includesAny(input, ["trabajo", "productiv", "organiza", "día"])) {
+        return "Prueba esta estructura:\n1. Elige una tarea importante para hoy.\n2. Hazla antes que las pequeñas.\n3. Reserva dos bloques sin distracciones.\n4. Deja 15 minutos al final para cerrar pendientes.";
+      }
+
+      if (includesAny(input, ["github", "publicar", "pages"])) {
+        return "Como esta web es estática, puedes publicarla directamente en GitHub Pages. Solo sube este `index.html`, activa Pages en tu repo y tendrás una URL pública sin servidor.";
+      }
+
+      if (includesAny(input, ["ia real", "openai", "api", "chatgpt"])) {
+        return "Sí, podemos convertir esta demo en un chat con IA real. Para eso habría que añadir un backend o funciones serverless para proteger la API key y conectar el frontend con el modelo.";
+      }
+
+      return `He recibido: "${text}".\n\nAhora mismo esta demo responde en local, pero ya tiene la base de una app de chat real. Si quieres, lo siguiente que puedo hacer es:\n- conectarla a una IA\n- darle usuarios y salas\n- mejorar el diseño\n- añadir envío de archivos`;
+    }
+
+    function includesAny(text, words) {
+      return words.some((word) => text.includes(word));
+    }
+  </script>
+</body>
+</html>
